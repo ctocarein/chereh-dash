@@ -8,7 +8,9 @@ interface AuthState {
   securityGate: SecurityGate | null;
   isAuthenticated: boolean;
   hasHydrated: boolean;
-  login: (token: string, identity: Identity, securityGate?: SecurityGate, email?: string) => void;
+  mustChangePassword: boolean;
+  login: (token: string, identity: Identity, securityGate?: SecurityGate, email?: string, mustChangePassword?: boolean) => void;
+  clearMustChangePassword: () => void;
   logout: () => void;
   setHasHydrated: (v: boolean) => void;
 }
@@ -39,19 +41,21 @@ export const useAuthStore = create<AuthState>()(
       securityGate: null,
       isAuthenticated: false,
       hasHydrated: false,
+      mustChangePassword: false,
       setHasHydrated: (v) => set({ hasHydrated: v }),
-      login: (token, identity, securityGate, email) => {
+      login: (token, identity, securityGate, email, mustChangePassword) => {
         if (typeof window !== "undefined") {
           localStorage.setItem("sanctum_token", token);
         }
         const enriched = email ? { ...identity, _email: email } : identity;
-        set({ token, identity: enriched, securityGate: securityGate ?? null, isAuthenticated: true });
+        set({ token, identity: enriched, securityGate: securityGate ?? null, isAuthenticated: true, mustChangePassword: mustChangePassword ?? false });
       },
+      clearMustChangePassword: () => set({ mustChangePassword: false }),
       logout: () => {
         if (typeof window !== "undefined") {
           localStorage.removeItem("sanctum_token");
         }
-        set({ token: null, identity: null, securityGate: null, isAuthenticated: false });
+        set({ token: null, identity: null, securityGate: null, isAuthenticated: false, mustChangePassword: false });
       },
     }),
     {
@@ -62,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
         identity: state.identity,
         securityGate: state.securityGate,
         isAuthenticated: state.isAuthenticated,
+        mustChangePassword: state.mustChangePassword,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

@@ -11,18 +11,20 @@ import {
   Brain,
   BarChart3,
   LogOut,
+  Building2,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { apiClient } from "@/lib/apiClient";
 
 const navigation = [
-  { name: "Dashboard",      href: "/dashboard",       icon: LayoutDashboard },
-  { name: "Patients",       href: "/patients",        icon: Users },
-  { name: "Ambassadeurs",   href: "/ambassadeurs",    icon: Share2 },
-  { name: "Evaluations",    href: "/evaluations",     icon: ClipboardList },
-  { name: "Questionnaires", href: "/questionnaires",  icon: BookOpen },
-  { name: "Décisions",      href: "/decisions",       icon: Brain },
-  { name: "Statistiques",   href: "/statistiques",    icon: BarChart3 },
+  { name: "Dashboard",      href: "/admin/dashboard",       icon: LayoutDashboard },
+  { name: "Structures",     href: "/admin/structures",      icon: Building2       },
+  { name: "Patients",       href: "/admin/patients",        icon: Users           },
+  { name: "Ambassadeurs",   href: "/admin/ambassadeurs",    icon: Share2          },
+  { name: "Evaluations",    href: "/admin/evaluations",     icon: ClipboardList   },
+  { name: "Questionnaires", href: "/admin/questionnaires",  icon: BookOpen        },
+  { name: "Décisions",      href: "/admin/decisions",       icon: Brain           },
+  { name: "Statistiques",   href: "/admin/statistiques",    icon: BarChart3       },
 ];
 
 export function Sidebar() {
@@ -61,7 +63,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", width: "100%", padding: "0 12px" }}>
         {navigation.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          const isActive = pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
           return (
             <NavItem key={item.href} item={item} isActive={isActive} />
           );

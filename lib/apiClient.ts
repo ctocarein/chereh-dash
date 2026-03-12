@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "@/stores/authStore";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://triage.carein.cloud/api";
 
@@ -25,7 +26,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("sanctum_token");
+        useAuthStore.getState().logout();
         window.location.href = "/login";
       }
     }
