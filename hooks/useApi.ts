@@ -2,6 +2,40 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
 import type { PaginatedResponse, QuestionTemplate, EvaluationSession, Ambassador, Referral, RiskModel, ModelVersion, ThematicBloc, QuestionGroup, Identity } from "@/types";
 
+// --- OrgManager: Mon organisation ---
+export function useMyOrganization() {
+  return useQuery({
+    queryKey: ["org", "my-organization"],
+    queryFn: () =>
+      apiClient.get("/organizations?per_page=1").then((r) => {
+        const items = r.data?.data ?? r.data?.organizations ?? [];
+        return Array.isArray(items) ? items[0] ?? null : null;
+      }),
+  });
+}
+
+// --- Admin: Organisations ---
+export function useOrganizations(page = 1, search = "", status = "") {
+  return useQuery({
+    queryKey: ["admin", "organizations", page, search, status],
+    queryFn: () => {
+      const params = new URLSearchParams({ page: String(page), per_page: "20" });
+      if (search) params.set("name", search);
+      if (status) params.set("status", status);
+      return apiClient.get(`/organizations?${params}`).then((r) => r.data);
+    },
+  });
+}
+
+export function useUpdateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string; plan?: string; status?: string; name?: string; type?: string }) =>
+      apiClient.patch(`/organizations/${id}`, data).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "organizations"] }),
+  });
+}
+
 // --- OrgManager: Patients (Beneficiary | Ambassador | AgentField scoped to org) ---
 export function useOrgPatients(page = 1, search = "", commune = "", role = "") {
   return useQuery({

@@ -74,7 +74,23 @@ const cancerLabels: [keyof PatientMedical, string][] = [
   ["has_other_cancer",   "Autre"],
 ];
 
-const ROLES = ["", "Beneficiary", "Ambassador", "AgentField"] as const;
+const COLS = "1.8fr 0.8fr 0.7fr 0.7fr 1.2fr 1fr 1.1fr";
+
+function makeMatricule(p: PatientRow): string {
+  const d = new Date(p.created_at);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  const suffix = p.id.replace(/-/g, "").slice(-4).toUpperCase();
+  return `Care-${dd}${mm}${yy}-${suffix}`;
+}
+
+const eduLabels: Record<string, string> = {
+  none: "Aucun",
+  primary: "Primaire",
+  secondary: "Secondaire",
+  university: "Universitaire",
+};
 
 export default function PatientsPage() {
   const [page, setPage]         = useState(1);
@@ -118,14 +134,13 @@ export default function PatientsPage() {
           <input
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Nom, téléphone, commune…"
+            placeholder="Matricule, commune, téléphone…"
             style={{ width: "100%", paddingLeft: 34, paddingRight: 12, paddingTop: 8, paddingBottom: 8, background: "var(--surface)", border: "1px solid var(--border-2)", borderRadius: 8, color: "var(--text)", fontSize: "0.82rem", outline: "none", boxSizing: "border-box" }}
             onFocus={(e) => (e.target.style.borderColor = "var(--brand)")}
             onBlur={(e)  => (e.target.style.borderColor = "var(--border-2)")}
           />
         </div>
 
-        {/* Role filter */}
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
@@ -147,15 +162,15 @@ export default function PatientsPage() {
       {/* Table */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
         {/* Header */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1fr 1fr 0.8fr 1.2fr 1fr", padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
-          {["Patient", "Numéro", "Commune", "Membership", "CMU", "Inscription", "Risque"].map((h) => (
+        <div style={{ display: "grid", gridTemplateColumns: COLS, padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
+          {["Matricule", "Genre", "Âge", "CMU", "Éducation", "Commune", "Téléphone"].map((h) => (
             <span key={h} style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
           ))}
         </div>
 
         {isLoading ? (
           Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1fr 1fr 0.8fr 1.2fr 1fr", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+            <div key={i} style={{ display: "grid", gridTemplateColumns: COLS, padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
               {Array.from({ length: 7 }).map((_, j) => (
                 <div key={j} style={{ height: 12, width: "60%", background: "var(--surface-2)", borderRadius: 4, animation: "pulse 1.5s ease infinite" }} />
               ))}
@@ -167,72 +182,58 @@ export default function PatientsPage() {
             <p style={{ fontSize: "0.85rem", color: "var(--text-3)", margin: 0 }}>Aucun patient trouvé</p>
           </div>
         ) : (
-          patients.map((p) => {
-            const risk = p.last_session?.risk_level;
-            const riskBadge = risk ? riskCfg[risk] : null;
-            return (
-              <div
-                key={p.id}
-                onClick={() => setSelected(p)}
-                style={{ display: "grid", gridTemplateColumns: "2fr 1.2fr 1fr 1fr 0.8fr 1.2fr 1fr", padding: "13px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-              >
-                {/* Patient */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-dim)", border: "1.5px solid var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", fontWeight: 700, color: "var(--brand)", flexShrink: 0 }}>
-                    {initials(p)}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", margin: 0 }}>{fullName(p)}</p>
-                    <p style={{ fontSize: "0.65rem", color: "var(--text-3)", margin: 0 }}>{p._email ?? ""}</p>
-                  </div>
-                </div>
-
-                {/* Numéro */}
-                <span style={{ fontSize: "0.75rem", color: "var(--text-2)", fontFamily: "monospace" }}>
-                  {p._phone ?? "—"}
-                </span>
-
-                {/* Commune */}
-                <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
-                  {p.personal?.commune ?? "—"}
-                </span>
-
-                {/* Membership / Rôles */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {p.roles?.length > 0
-                    ? p.roles.map((r) => {
-                        const cfg = roleCfg[r] ?? { label: r, variant: "default" as const };
-                        return <Badge key={r} variant={cfg.variant}>{cfg.label}</Badge>;
-                      })
-                    : <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>—</span>
-                  }
-                </div>
-
-                {/* CMU */}
-                <span style={{ fontSize: "0.75rem" }}>
-                  {p.personal?.cmu == null
-                    ? <span style={{ color: "var(--text-3)" }}>—</span>
-                    : p.personal.cmu
-                      ? <Badge variant="success">Oui</Badge>
-                      : <Badge variant="default">Non</Badge>
-                  }
-                </span>
-
-                {/* Inscription */}
-                <span style={{ fontSize: "0.72rem", color: "var(--text-3)" }}>
-                  {formatDate(p.created_at)}
-                </span>
-
-                {/* Risque */}
-                {riskBadge
-                  ? <Badge variant={riskBadge.variant}>{riskBadge.label}</Badge>
-                  : <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>—</span>
-                }
+          patients.map((p) => (
+            <div
+              key={p.id}
+              onClick={() => setSelected(p)}
+              style={{ display: "grid", gridTemplateColumns: COLS, padding: "12px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+            >
+              {/* Matricule */}
+              <div>
+                <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--brand)", margin: 0, fontFamily: "monospace" }}>{makeMatricule(p)}</p>
+                <p style={{ fontSize: "0.65rem", color: "var(--text-3)", margin: 0 }}>{fullName(p)}</p>
               </div>
-            );
-          })
+
+              {/* Genre */}
+              <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
+                {p.personal?.gender ?? "—"}
+              </span>
+
+              {/* Âge */}
+              <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
+                {p.personal?.age != null ? `${p.personal.age} ans` : "—"}
+              </span>
+
+              {/* CMU */}
+              <span style={{ fontSize: "0.75rem" }}>
+                {p.personal?.cmu == null
+                  ? <span style={{ color: "var(--text-3)" }}>—</span>
+                  : p.personal.cmu
+                    ? <Badge variant="success">Oui</Badge>
+                    : <Badge variant="default">Non</Badge>
+                }
+              </span>
+
+              {/* Éducation */}
+              <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
+                {p.personal?.education_level
+                  ? (eduLabels[p.personal.education_level] ?? p.personal.education_level)
+                  : "—"}
+              </span>
+
+              {/* Commune */}
+              <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
+                {p.personal?.commune ?? "—"}
+              </span>
+
+              {/* Téléphone */}
+              <span style={{ fontSize: "0.75rem", color: "var(--text-2)", fontFamily: "monospace" }}>
+                {p._phone ?? "—"}
+              </span>
+            </div>
+          ))
         )}
 
         {/* Pagination */}
@@ -263,6 +264,7 @@ export default function PatientsPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>{fullName(selected)}</p>
+                  <p style={{ fontSize: "0.68rem", color: "var(--brand)", fontFamily: "monospace", margin: "2px 0 0" }}>{makeMatricule(selected)}</p>
                   <div style={{ display: "flex", gap: 4, marginTop: 2, flexWrap: "wrap" }}>
                     {selected.roles?.map((r) => {
                       const cfg = roleCfg[r] ?? { label: r, variant: "default" as const };
@@ -291,13 +293,13 @@ export default function PatientsPage() {
               {/* Infos personnelles */}
               {selected.personal && (
                 <Section title="Informations personnelles" icon={<User size={13} color="var(--brand)" />}>
-                  <InfoRow icon={<Calendar size={12} />}     label="Date de naissance"  value={selected.personal.birth_date ? formatDate(selected.personal.birth_date) : "—"} />
-                  <InfoRow icon={<User size={12} />}         label="Âge"                value={selected.personal.age != null ? `${selected.personal.age} ans` : "—"} />
-                  <InfoRow icon={<User size={12} />}         label="Genre"              value={selected.personal.gender ?? "—"} />
-                  <InfoRow icon={<User size={12} />}         label="Occupation"         value={selected.personal.occupation ?? "—"} />
-                  <InfoRow icon={<User size={12} />}         label="Niveau scolaire"    value={selected.personal.education_level ?? "—"} />
-                  <InfoRow icon={<CheckCircle size={12} />}  label="CMU"                value={selected.personal.cmu == null ? "—" : selected.personal.cmu ? "Oui" : "Non"} />
-                  <InfoRow icon={<Calendar size={12} />}     label="Date d'inscription" value={formatDate(selected.created_at)} />
+                  <InfoRow icon={<Calendar size={12} />}    label="Date de naissance"  value={selected.personal.birth_date ? formatDate(selected.personal.birth_date) : "—"} />
+                  <InfoRow icon={<User size={12} />}        label="Âge"                value={selected.personal.age != null ? `${selected.personal.age} ans` : "—"} />
+                  <InfoRow icon={<User size={12} />}        label="Genre"              value={selected.personal.gender ?? "—"} />
+                  <InfoRow icon={<User size={12} />}        label="Occupation"         value={selected.personal.occupation ?? "—"} />
+                  <InfoRow icon={<User size={12} />}        label="Niveau scolaire"    value={selected.personal.education_level ? (eduLabels[selected.personal.education_level] ?? selected.personal.education_level) : "—"} />
+                  <InfoRow icon={<CheckCircle size={12} />} label="CMU"                value={selected.personal.cmu == null ? "—" : selected.personal.cmu ? "Oui" : "Non"} />
+                  <InfoRow icon={<Calendar size={12} />}    label="Date d'inscription" value={formatDate(selected.created_at)} />
                 </Section>
               )}
 

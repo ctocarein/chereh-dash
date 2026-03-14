@@ -119,6 +119,59 @@ html, body {
   border-radius: 0 3px 3px 0;
 }
 
+/* ── Animations ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes progressFill {
+  from { width: 0%; }
+  to   { width: var(--fill-w, 60%); }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--brand-glow); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 4px transparent; }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.fade-up  { animation: fadeSlideUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.fade-in  { animation: fadeIn 0.4s ease both; }
+.pulse-dot {
+  animation: pulseDot 2.2s ease-in-out infinite;
+  border-radius: 50%;
+}
+
+.progress-bar-fill {
+  animation: progressFill 0.9s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* Hover lift card */
+.lift-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.lift-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  border-color: var(--border-2);
+}
+
+/* Action link hover */
+.action-link {
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.action-link:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--brand) !important;
+  transform: translateX(3px);
+}
+
 /* Table styles */
 .dash-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .dash-table thead th {

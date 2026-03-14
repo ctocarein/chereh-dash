@@ -92,19 +92,19 @@ export default function EvaluationsOrgPage() {
             <p style={{ fontSize: "0.85rem", color: "var(--text-3)", margin: 0 }}>Aucune session trouvée</p>
           </div>
         ) : (
-          sessions.map((s) => {
+          sessions.map((s, i) => {
             const cfg  = statusCfg[s.status] ?? { label: s.status, variant: "default" as const };
             const risk = s.risk_zone ? riskCfg[s.risk_zone] : null;
             return (
               <div
-                key={s.uuid}
+                key={s.uuid ?? i}
                 style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 80px", padding: "13px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", cursor: "pointer" }}
                 onClick={() => setSelected(s)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "")}
               >
                 <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "var(--text-2)", background: "var(--surface-2)", padding: "2px 7px", borderRadius: 4, width: "fit-content" }}>
-                  {s.uuid.slice(0, 14)}…
+                  {s.uuid?.slice(0, 14) ?? "—"}…
                 </span>
                 <Badge variant={cfg.variant}>{cfg.label}</Badge>
                 <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r matricule C:laragonwwwapi.triage --include=*.php)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -l \"gender\\\\|genre\" C:laragonwwwapi.triagedatabasemigrations/*.php)",
+      "Bash(grep -l \"EvaluationSession\" \"C:\\\\laragon\\\\www\\\\api.triage\\\\app\\\\Domains\\\\Evaluation\\\\Models\"/*.php)",
+      "Bash(find C:laragonwwwapi.triage -type f -name *organization* -o -name *Organization*)",
+      "Bash(find C:laragonwwwapi.triagedatabasemigrations -type f -name *sub* -o -name *plan* -o -name *payment* -o -name *subscription*)",
+      "Bash(grep -r \"FreeMin\\\\|FreePlus\\\\|Premium\" C:laragonwwwapi.triageapp --include=*.php)",
+      "Bash(find C:laragonwwwapi.triageapp -type f -name *Enum* -o -name *Constant*)",
+      "Bash(php artisan:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls \"c:/dev/Chereh-Projets/chereh-dash/app/\\(dashboard\\)/\")",
+      "Bash(ls \"c:/dev/Chereh-Projets/chereh-dash/app/\\(dashboard\\)/organisation/\")"
+    ],
+    "additionalDirectories": [
+      "C:\\laragon\\www\\api.triage\\database\\migrations",
+      "C:\\laragon\\www\\api.triage\\app\\Domains\\Organization\\Models",
+      "C:\\laragon\\www\\api.triage\\app\\Domains\\Organization\\Presentation\\Http\\Requests"
+    ]
+  }
+}

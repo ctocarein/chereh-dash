@@ -70,6 +70,22 @@ const cancerLabels: [keyof PatientMedical, string][] = [
   ["has_other_cancer",    "Autre cancer"],
 ];
 
+const eduLabels: Record<string, string> = {
+  none: "Aucun",
+  primary: "Primaire",
+  secondary: "Secondaire",
+  university: "Universitaire",
+};
+
+const menopauseLabels: Record<string, string> = {
+  pre: "Non ménopausée",
+  post: "Ménopausée",
+  unknown: "Inconnu",
+};
+
+// 8 colonnes : Patient | Téléphone | Âge / Naissance | Éducation / Occupation | CMU | Commune | Ménopause | Groupe sanguin
+const COLS = "1.8fr 1fr 1.1fr 1.4fr 0.6fr 0.9fr 1.1fr 0.8fr";
+
 export default function PatientsPage() {
   const [page, setPage]         = useState(1);
   const [search, setSearch]     = useState("");
@@ -127,16 +143,16 @@ export default function PatientsPage() {
       {/* Table */}
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
         {/* Header row */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
-          {["Patient", "Contact", "Commune", "Âge", "Dernière évaluation", "Risque"].map((h) => (
+        <div style={{ display: "grid", gridTemplateColumns: COLS, padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}>
+          {["Patient", "Téléphone", "Âge / Né(e)", "Éducation / Métier", "CMU", "Commune", "Ménopause", "Sang"].map((h) => (
             <span key={h} style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
           ))}
         </div>
 
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", padding: "16px 20px", borderBottom: "1px solid var(--border)", gap: 0 }}>
-              {Array.from({ length: 6 }).map((_, j) => (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: COLS, padding: "16px 20px", borderBottom: "1px solid var(--border)", gap: 0 }}>
+              {Array.from({ length: 8 }).map((_, j) => (
                 <div key={j} style={{ height: 12, width: "60%", background: "var(--surface-2)", borderRadius: 4, animation: "pulse 1.5s ease infinite" }} />
               ))}
             </div>
@@ -147,69 +163,84 @@ export default function PatientsPage() {
             <p style={{ fontSize: "0.85rem", color: "var(--text-3)", margin: 0 }}>Aucun patient trouvé</p>
           </div>
         ) : (
-          patients.map((p) => {
-            const risk = p.last_session?.risk_level;
-            const riskBadge = risk ? riskCfg[risk] : null;
-            return (
-              <div
-                key={p.id}
-                onClick={() => setSelected(p)}
-                style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr 1fr", padding: "13px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-              >
-                {/* Name + avatar */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-dim)", border: "1.5px solid var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", fontWeight: 700, color: "var(--brand)", flexShrink: 0 }}>
-                    {initials(p)}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", margin: 0 }}>{fullName(p)}</p>
-                    <p style={{ fontSize: "0.65rem", color: "var(--text-3)", margin: 0, fontFamily: "monospace" }}>{p.id.slice(0, 12)}…</p>
-                  </div>
+          patients.map((p) => (
+            <div
+              key={p.id}
+              onClick={() => setSelected(p)}
+              style={{ display: "grid", gridTemplateColumns: COLS, padding: "11px 20px", borderBottom: "1px solid var(--border)", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+            >
+              {/* Patient */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--brand-dim)", border: "1.5px solid var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700, color: "var(--brand)", flexShrink: 0 }}>
+                  {initials(p)}
                 </div>
-
-                {/* Contact */}
                 <div>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-2)", margin: 0 }}>{p._phone ?? "—"}</p>
-                  <p style={{ fontSize: "0.65rem", color: "var(--text-3)", margin: 0 }}>{p._email ?? ""}</p>
+                  <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", margin: 0 }}>{fullName(p)}</p>
+                  <p style={{ fontSize: "0.63rem", color: "var(--text-3)", margin: 0 }}>{p._email ?? ""}</p>
                 </div>
+              </div>
 
-                {/* Commune */}
-                <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>{p.personal?.commune ?? "—"}</span>
+              {/* Téléphone */}
+              <span style={{ fontSize: "0.74rem", color: "var(--text-2)", fontFamily: "monospace" }}>
+                {p._phone ?? "—"}
+              </span>
 
-                {/* Age */}
-                <span style={{ fontSize: "0.75rem", color: "var(--text-2)" }}>
+              {/* Âge / Naissance */}
+              <div>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-2)", margin: 0 }}>
                   {p.personal?.age != null ? `${p.personal.age} ans` : "—"}
-                </span>
-
-                {/* Last session */}
-                <div>
-                  {p.last_session ? (
-                    <>
-                      <div style={{ fontSize: "0.62rem" }}>
-                        <Badge variant={p.last_session.status === "completed" ? "success" : p.last_session.status === "in_progress" ? "info" : "default"}>
-                          {p.last_session.status === "completed" ? "Terminée" : p.last_session.status === "in_progress" ? "En cours" : p.last_session.status}
-                        </Badge>
-                      </div>
-                      {p.last_session.score != null && (
-                        <p style={{ fontSize: "0.65rem", color: "var(--text-3)", margin: "2px 0 0" }}>Score: {p.last_session.score}</p>
-                      )}
-                    </>
-                  ) : (
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>—</span>
-                  )}
-                </div>
-
-                {/* Risk */}
-                {riskBadge ? (
-                  <Badge variant={riskBadge.variant}>{riskBadge.label}</Badge>
-                ) : (
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>—</span>
+                </p>
+                {p.personal?.birth_date && (
+                  <p style={{ fontSize: "0.63rem", color: "var(--text-3)", margin: 0 }}>
+                    {formatDate(p.personal.birth_date)}
+                  </p>
                 )}
               </div>
-            );
-          })
+
+              {/* Éducation / Occupation */}
+              <div>
+                <p style={{ fontSize: "0.74rem", color: "var(--text-2)", margin: 0 }}>
+                  {p.personal?.education_level
+                    ? (eduLabels[p.personal.education_level] ?? p.personal.education_level)
+                    : "—"}
+                </p>
+                {p.personal?.occupation && (
+                  <p style={{ fontSize: "0.63rem", color: "var(--text-3)", margin: 0 }}>
+                    {p.personal.occupation}
+                  </p>
+                )}
+              </div>
+
+              {/* CMU */}
+              <span>
+                {p.personal?.cmu == null
+                  ? <span style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>—</span>
+                  : p.personal.cmu
+                    ? <Badge variant="success">Oui</Badge>
+                    : <Badge variant="default">Non</Badge>
+                }
+              </span>
+
+              {/* Commune */}
+              <span style={{ fontSize: "0.74rem", color: "var(--text-2)" }}>
+                {p.personal?.commune ?? "—"}
+              </span>
+
+              {/* Ménopause */}
+              <span style={{ fontSize: "0.74rem", color: "var(--text-2)" }}>
+                {p.medical?.menopause_status
+                  ? (menopauseLabels[p.medical.menopause_status] ?? p.medical.menopause_status)
+                  : "—"}
+              </span>
+
+              {/* Groupe sanguin */}
+              <span style={{ fontSize: "0.74rem", color: "var(--text-2)", fontWeight: p.medical?.blood_type ? 600 : 400 }}>
+                {p.medical?.blood_type ?? "—"}
+              </span>
+            </div>
+          ))
         )}
 
         {/* Pagination */}
@@ -240,7 +271,9 @@ export default function PatientsPage() {
                 </div>
                 <div>
                   <p style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", margin: 0 }}>{fullName(selected)}</p>
-                  <p style={{ fontSize: "0.7rem", color: "var(--text-3)", margin: 0 }}>Patient · {selected.organization?.name ?? "Aucune org"}</p>
+                  <p style={{ fontSize: "0.7rem", color: "var(--text-3)", margin: 0 }}>
+                    Patient · {selected.organization?.name ?? "Aucune org"}
+                  </p>
                 </div>
               </div>
               <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-3)", padding: 4 }}>
@@ -260,19 +293,30 @@ export default function PatientsPage() {
               {/* Infos personnelles */}
               {selected.personal && (
                 <Section title="Informations personnelles" icon={<User size={13} color="var(--brand)" />}>
+                  <InfoRow icon={<User size={12} />} label="Prénom" value={selected.personal.first_name ?? "—"} />
+                  <InfoRow icon={<User size={12} />} label="Nom" value={selected.personal.last_name ?? "—"} />
                   <InfoRow icon={<Calendar size={12} />} label="Date de naissance" value={selected.personal.birth_date ? formatDate(selected.personal.birth_date) : "—"} />
                   <InfoRow icon={<User size={12} />} label="Âge" value={selected.personal.age != null ? `${selected.personal.age} ans` : "—"} />
                   <InfoRow icon={<User size={12} />} label="Genre" value={selected.personal.gender ?? "—"} />
                   <InfoRow icon={<User size={12} />} label="Occupation" value={selected.personal.occupation ?? "—"} />
-                  <InfoRow icon={<User size={12} />} label="Niveau scolaire" value={selected.personal.education_level ?? "—"} />
-                  <InfoRow icon={<CheckCircle size={12} />} label="CMU" value={selected.personal.cmu ? "Oui" : "Non"} />
+                  <InfoRow icon={<User size={12} />} label="Niveau scolaire" value={selected.personal.education_level ? (eduLabels[selected.personal.education_level] ?? selected.personal.education_level) : "—"} />
+                  <InfoRow icon={<CheckCircle size={12} />} label="CMU" value={selected.personal.cmu == null ? "—" : selected.personal.cmu ? "Oui" : "Non"} />
                 </Section>
               )}
 
               {/* Profil médical */}
               {selected.medical && (
                 <Section title="Profil médical" icon={<HeartPulse size={13} color="var(--brand)" />}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                  <InfoRow icon={<HeartPulse size={12} />} label="Ménopause" value={selected.medical.menopause_status ? (menopauseLabels[selected.medical.menopause_status] ?? selected.medical.menopause_status) : "—"} />
+                  <InfoRow icon={<HeartPulse size={12} />} label="Groupe sanguin" value={selected.medical.blood_type ?? "—"} />
+                  <InfoRow icon={<HeartPulse size={12} />} label="Enceinte" value={selected.medical.is_pregnant ? "Oui" : "Non"} />
+                  <InfoRow icon={<HeartPulse size={12} />} label="Antécédents familiaux" value={selected.medical.family_cancer_history ? "Oui" : "Non"} />
+                  <InfoRow icon={<HeartPulse size={12} />} label="Dernier dépistage" value={selected.medical.last_screening_date ? formatDate(selected.medical.last_screening_date) : "—"} />
+                  <InfoRow icon={<HeartPulse size={12} />} label="Exposée au tabac" value={selected.medical.exposed_to_smoke ? "Oui" : "Non"} />
+                  {selected.medical.weight && (
+                    <InfoRow icon={<HeartPulse size={12} />} label="Poids / Taille" value={`${selected.medical.weight} kg / ${selected.medical.height ?? "—"} cm`} />
+                  )}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 4 }}>
                     {cancerLabels.map(([key, label]) =>
                       selected.medical![key] ? (
                         <span key={key} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 99, background: "rgba(239,68,68,0.1)", color: "#EF4444", fontSize: "0.7rem", fontWeight: 600 }}>
@@ -284,13 +328,6 @@ export default function PatientsPage() {
                       <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>Aucun antécédent de cancer</span>
                     )}
                   </div>
-                  <InfoRow icon={<HeartPulse size={12} />} label="Groupe sanguin"         value={selected.medical.blood_type ?? "—"} />
-                  <InfoRow icon={<HeartPulse size={12} />} label="Antécédents familiaux"  value={selected.medical.family_cancer_history ? "Oui" : "Non"} />
-                  <InfoRow icon={<HeartPulse size={12} />} label="Dernier dépistage"      value={selected.medical.last_screening_date ? formatDate(selected.medical.last_screening_date) : "—"} />
-                  <InfoRow icon={<HeartPulse size={12} />} label="Ménopause"              value={selected.medical.menopause_status ?? "—"} />
-                  <InfoRow icon={<HeartPulse size={12} />} label="Enceinte"               value={selected.medical.is_pregnant ? "Oui" : "Non"} />
-                  <InfoRow icon={<HeartPulse size={12} />} label="Exposée au tabac"       value={selected.medical.exposed_to_smoke ? "Oui" : "Non"} />
-                  {selected.medical.weight && <InfoRow icon={<HeartPulse size={12} />} label="Poids / Taille" value={`${selected.medical.weight} kg / ${selected.medical.height ?? "—"} cm`} />}
                 </Section>
               )}
 

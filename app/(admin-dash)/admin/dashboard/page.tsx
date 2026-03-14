@@ -92,10 +92,10 @@ export default function DashboardPage() {
           </div>
           <div>
             {sessions?.data?.length ? (
-              sessions.data.slice(0, 6).map((s) => {
+              sessions.data.slice(0, 6).map((s, i) => {
                 const cfg = sessionStatusMap[s.status] ?? { label: s.status, variant: "default" as const };
                 return (
-                  <div key={s.uuid} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
+                  <div key={s.uuid ?? i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                       <span style={{ fontSize: "0.78rem", fontFamily: "monospace", color: "var(--text-2)" }}>{s.uuid?.slice(0, 12) ?? "—"}…</span>
                       <span style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>{formatDate(s.created_at)}</span>
